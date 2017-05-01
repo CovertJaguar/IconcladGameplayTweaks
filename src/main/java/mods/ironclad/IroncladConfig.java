@@ -46,10 +46,10 @@ public class IroncladConfig {
             if (dropChance >= 0F) {
                 EntityLiving el = (EntityLiving) entity;
                 float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryArmorDropChances", "field_184655_bs");
-                el.setDropChance(EntityEquipmentSlot.HEAD, Math.min(currentValues[0], dropChance));
-                el.setDropChance(EntityEquipmentSlot.CHEST, Math.min(currentValues[1], dropChance));
-                el.setDropChance(EntityEquipmentSlot.LEGS, Math.min(currentValues[2], dropChance));
-                el.setDropChance(EntityEquipmentSlot.FEET, Math.min(currentValues[3], dropChance));
+                el.setDropChance(EntityEquipmentSlot.HEAD, currentValues[0] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.CHEST, currentValues[1] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.LEGS, currentValues[2] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.FEET, currentValues[3] <= 0F ? -1F : dropChance);
             }
 
             if (config.hasChanged())
@@ -63,8 +63,8 @@ public class IroncladConfig {
             if (dropChance >= 0F) {
                 EntityLiving el = (EntityLiving) entity;
                 float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryHandsDropChances", "field_82174_bp");
-                el.setDropChance(EntityEquipmentSlot.MAINHAND, Math.min(currentValues[0], dropChance));
-                el.setDropChance(EntityEquipmentSlot.OFFHAND, Math.min(currentValues[1], dropChance));
+                el.setDropChance(EntityEquipmentSlot.MAINHAND, currentValues[0] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.OFFHAND, currentValues[1] <= 0F ? -1F : dropChance);
             }
 
             if (config.hasChanged())
