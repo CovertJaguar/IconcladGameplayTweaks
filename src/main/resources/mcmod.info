@@ -1,0 +1,16 @@
+[
+{
+  "modid": "ironclad",
+  "name": "Ironclad Gameplay Tweaks",
+  "description": "A collection of tweaks to Minecraft gameplay",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["CovertJaguar"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
