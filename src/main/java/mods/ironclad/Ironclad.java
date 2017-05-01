@@ -7,6 +7,8 @@
 
 package mods.ironclad;
 
+import mods.ironclad.EventHandlers.DropChanceEventHandler;
+import mods.ironclad.EventHandlers.KeepMainHandEventHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -26,11 +28,14 @@ public class Ironclad {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        MinecraftForge.EVENT_BUS.register(IroncladEventHandler.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(DropChanceEventHandler.INSTANCE);
+        if (IroncladConfig.keepMainHandOnDeath)
+            MinecraftForge.EVENT_BUS.register(KeepMainHandEventHandler.INSTANCE);
     }
 
     @EventHandler
     public void init(FMLModDisabledEvent event) {
-        MinecraftForge.EVENT_BUS.unregister(IroncladEventHandler.INSTANCE);
+        MinecraftForge.EVENT_BUS.unregister(DropChanceEventHandler.INSTANCE);
+        MinecraftForge.EVENT_BUS.unregister(KeepMainHandEventHandler.INSTANCE);
     }
 }

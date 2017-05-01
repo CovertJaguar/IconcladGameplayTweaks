@@ -5,8 +5,9 @@
  * see LICENSE in root folder for details.
  */
 
-package mods.ironclad;
+package mods.ironclad.EventHandlers;
 
+import mods.ironclad.IroncladConfig;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -15,10 +16,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  *
  * @author CovertJaguar <http://www.railcraft.info>
  */
-public class IroncladEventHandler {
-    public static IroncladEventHandler INSTANCE = new IroncladEventHandler();
+public class DropChanceEventHandler {
+    public static DropChanceEventHandler INSTANCE = new DropChanceEventHandler();
 
-    private IroncladEventHandler() {
+    private DropChanceEventHandler() {
     }
 
     @SubscribeEvent
@@ -26,4 +27,5 @@ public class IroncladEventHandler {
         IroncladConfig.setArmorDropChance(event.getEntity());
         IroncladConfig.setHandDropChance(event.getEntity());
     }
+
 }

@@ -14,8 +14,6 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by CovertJaguar on 4/17/2017 for Railcraft.
@@ -23,11 +21,11 @@ import java.util.Map;
  * @author CovertJaguar <http://www.railcraft.info>
  */
 public class IroncladConfig {
+    public static boolean keepMainHandOnDeath;
     private static Configuration config;
     private static String MOB_INV_ARMOR_DROP = "mob_inv_armor_drop_chances";
     private static String MOB_INV_HAND_DROP = "mob_inv_hand_drop_chances";
-    private static Map<Class<? extends Entity>, Float> armorDropChances = new HashMap<>();
-    private static Map<Class<? extends Entity>, Float> handDropChances = new HashMap<>();
+    private static String PLAYER_CAT = "player";
 
     public static void load(File configFile) {
         config = new Configuration(configFile);
@@ -35,6 +33,9 @@ public class IroncladConfig {
 
         config.setCategoryComment(MOB_INV_ARMOR_DROP, "The chance that a entity will drop the armor its wearing. -1 to disable drops entirely.");
         config.setCategoryComment(MOB_INV_HAND_DROP, "The chance that a entity will drop what is in its hands. -1 to disable drops entirely.");
+        config.setCategoryComment(PLAYER_CAT, "Tweaks pertaining to the player.");
+
+        keepMainHandOnDeath = config.getBoolean("keepMainHandOnDeath", PLAYER_CAT, keepMainHandOnDeath, "If true, the player will keep the item in his main hand through death.");
 
         if (config.hasChanged())
             config.save();
@@ -42,7 +43,7 @@ public class IroncladConfig {
 
     public static void setArmorDropChance(Entity entity) {
         if (entity instanceof EntityLiving) {
-            float dropChance = armorDropChances.computeIfAbsent(entity.getClass(), k -> config.getFloat(entity.getClass().getName(), MOB_INV_ARMOR_DROP, 0.085F, -1F, 1F, ""));
+            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_ARMOR_DROP, 0.085F, -1F, 1F, "");
             if (dropChance >= 0F) {
                 EntityLiving el = (EntityLiving) entity;
                 float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryArmorDropChances", "field_184655_bs");
@@ -59,7 +60,7 @@ public class IroncladConfig {
 
     public static void setHandDropChance(Entity entity) {
         if (entity instanceof EntityLiving) {
-            float dropChance = handDropChances.computeIfAbsent(entity.getClass(), k -> config.getFloat(entity.getClass().getName(), MOB_INV_HAND_DROP, 0.085F, -1F, 1F, ""));
+            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_HAND_DROP, 0.085F, -1F, 1F, "");
             if (dropChance >= 0F) {
                 EntityLiving el = (EntityLiving) entity;
                 float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryHandsDropChances", "field_82174_bp");
