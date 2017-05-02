@@ -28,13 +28,13 @@ import java.util.Map;
  */
 public class KeepMainHandEventHandler {
     public static KeepMainHandEventHandler INSTANCE = new KeepMainHandEventHandler();
-    private static Map<EntityPlayer, ItemStack> deadPlayers = new MapMaker().weakKeys().makeMap();
+    private Map<EntityPlayer, ItemStack> deadPlayers = new MapMaker().weakKeys().makeMap();
 
     private KeepMainHandEventHandler() {
     }
 
     @SubscribeEvent
-    public void onPlayerDrops(LivingDeathEvent event) {
+    public void onLivingDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof EntityPlayerMP) {
             EntityPlayerMP player = (EntityPlayerMP) event.getEntity();
             ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
@@ -61,22 +61,19 @@ public class KeepMainHandEventHandler {
         }
         if (foundItem)
             player.setHeldItem(EnumHand.MAIN_HAND, mainHandItemStack);
-        else
-            deadPlayers.remove(player);
+        deadPlayers.remove(player);
     }
 
     @SubscribeEvent
     public void onPlayerClone(PlayerEvent.Clone event) {
         EntityPlayer oldPlayer = event.getOriginal();
         if (!event.isWasDeath()) {
-            deadPlayers.remove(oldPlayer);
             return;
         }
         EntityPlayer newPlayer = event.getEntityPlayer();
-        ItemStack mainHandItemStack = deadPlayers.get(oldPlayer);
+        ItemStack mainHandItemStack = oldPlayer.getHeldItem(EnumHand.MAIN_HAND);
         if (mainHandItemStack == null)
             return;
         newPlayer.setHeldItem(EnumHand.MAIN_HAND, mainHandItemStack);
-        deadPlayers.remove(oldPlayer);
     }
 }

@@ -35,7 +35,7 @@ public class IroncladConfig {
         config.setCategoryComment(MOB_INV_HAND_DROP, "The chance that a entity will drop what is in its hands. -1 to disable drops entirely.");
         config.setCategoryComment(PLAYER_CAT, "Tweaks pertaining to the player.");
 
-        keepMainHandOnDeath = config.getBoolean("keepMainHandOnDeath", PLAYER_CAT, keepMainHandOnDeath, "If true, the player will keep the item in his main hand through death.");
+        keepMainHandOnDeath = config.getBoolean("keepMainHandOnDeath", PLAYER_CAT, keepMainHandOnDeath, "If true, the player will keep the item in his main hand through death. IT is not recommended to turn on the keepInventory gamerule while this is active.");
 
         if (config.hasChanged())
             config.save();
