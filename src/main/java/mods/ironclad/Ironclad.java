@@ -7,8 +7,8 @@
 
 package mods.ironclad;
 
-import mods.ironclad.EventHandlers.DropChanceEventHandler;
-import mods.ironclad.EventHandlers.KeepMainHandEventHandler;
+import mods.ironclad.EventHandlers.*;
+import mods.ironclad.config.IroncladConfig;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -16,10 +16,22 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLModDisabledEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = Ironclad.MOD_ID, version = Ironclad.VERSION, canBeDeactivated = true, acceptableRemoteVersions = "*")
+@Mod(modid = Ironclad.MOD_ID,
+        version = Ironclad.VERSION,
+        guiFactory = "mods.ironclad.config.IroncladGuiConfigFactory",
+        canBeDeactivated = true,
+        acceptableRemoteVersions = "*")
 public class Ironclad {
-    static final String MOD_ID = "ironclad";
-    static final String VERSION = "@VERSION@";
+    public static final String MOD_ID = "ironclad";
+    public static final String VERSION = "@VERSION@";
+    public static final IIroncladEventHandler[] eventHandlers = {
+            DropChanceEventHandler.INSTANCE,
+            KeepMainHandEventHandler.INSTANCE,
+            BonemealEventHandler.INSTANCE,
+            HorseSpeedEventHandler.HORSE,
+            HorseSpeedEventHandler.UNDEAD,
+            HorseSpeedEventHandler.MULE
+    };
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -28,14 +40,32 @@ public class Ironclad {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        MinecraftForge.EVENT_BUS.register(DropChanceEventHandler.INSTANCE);
-        if (IroncladConfig.keepMainHandOnDeath)
-            MinecraftForge.EVENT_BUS.register(KeepMainHandEventHandler.INSTANCE);
+        registerEventHandlers();
     }
 
     @EventHandler
-    public void init(FMLModDisabledEvent event) {
-        MinecraftForge.EVENT_BUS.unregister(DropChanceEventHandler.INSTANCE);
-        MinecraftForge.EVENT_BUS.unregister(KeepMainHandEventHandler.INSTANCE);
+    public void disable(FMLModDisabledEvent event) {
+        unregisterEventHandlers();
+    }
+
+    public static void registerEventHandlers() {
+        for (IIroncladEventHandler eventHandler : eventHandlers) {
+            if (eventHandler.isEnabled())
+                MinecraftForge.EVENT_BUS.register(eventHandler);
+        }
+    }
+
+    public static void unregisterEventHandlers() {
+        for (IIroncladEventHandler eventHandler : eventHandlers) {
+            MinecraftForge.EVENT_BUS.unregister(eventHandler);
+        }
+    }
+
+    public static void refreshEventHandlers() {
+        unregisterEventHandlers();
+        for (IIroncladEventHandler eventHandler : eventHandlers) {
+            eventHandler.reset();
+        }
+        registerEventHandlers();
     }
 }

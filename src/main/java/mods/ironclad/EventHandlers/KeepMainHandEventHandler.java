@@ -8,6 +8,7 @@
 package mods.ironclad.EventHandlers;
 
 import com.google.common.collect.MapMaker;
+import mods.ironclad.config.IroncladConfig;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -26,11 +27,16 @@ import java.util.Map;
  *
  * @author CovertJaguar <http://www.railcraft.info>
  */
-public class KeepMainHandEventHandler {
+public class KeepMainHandEventHandler implements IIroncladEventHandler{
     public static KeepMainHandEventHandler INSTANCE = new KeepMainHandEventHandler();
     private Map<EntityPlayer, ItemStack> deadPlayers = new MapMaker().weakKeys().makeMap();
 
     private KeepMainHandEventHandler() {
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return IroncladConfig.keepMainHandOnDeath;
     }
 
     @SubscribeEvent
