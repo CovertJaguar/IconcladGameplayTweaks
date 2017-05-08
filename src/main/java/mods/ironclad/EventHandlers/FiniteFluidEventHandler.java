@@ -48,25 +48,25 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
 
         private final String[] blocks;
 
-        private int minReplenishHeight = 0;
-        private int maxReplenishHeight = 64;
+        private int heightMinReplenish = 0;
+        private int heightMaxReplenish = 64;
 
-        private int blacklistedBiomeSearchDistance = 1;
-        private int normalBiomeSearchDistance = 4;
+        private int biomeSearchDistanceBlacklisted = 1;
+        private int biomeSearchDistanceNormal = 4;
 
         private int minPoolSize = 1000;
 
-        private String[] dimensionWhitelist = {"0"};
+        private String[] whitelistedDimensions = {"0"};
 
-        private String[] biomeBlacklistDefaults = {"minecraft:hell"};
-        private String[] biomeBlacklist = biomeBlacklistDefaults.clone();
-        private String[] biomeWhitelistDefaults = {"minecraft:deep_ocean"};
-        private String[] biomeWhitelist = biomeWhitelistDefaults.clone();
+        private String[] blacklistBiomesDefaults = {"minecraft:hell"};
+        private String[] blacklistedBiomes = blacklistBiomesDefaults.clone();
+        private String[] whitelistBiomesDefaults = {"minecraft:deep_ocean"};
+        private String[] whitelistedBiomes = whitelistBiomesDefaults.clone();
 
-        private String[] biomeTypeBlacklistDefaults = {"DRY", "NETHER", "END"};
-        private String[] biomeTypeBlacklist = biomeTypeBlacklistDefaults.clone();
-        private String[] biomeTypeWhitelistDefaults = {"WATER", "OCEAN", "RIVER", "BEACH", "WET", "SWAMP"};
-        private String[] biomeTypeWhitelist = biomeTypeWhitelistDefaults.clone();
+        private String[] blacklistBiomeTypesDefaults = {"DRY", "NETHER", "END"};
+        private String[] blacklistedBiomeTypes = blacklistBiomeTypesDefaults.clone();
+        private String[] whitelistBiomeTypesDefaults = {"WATER", "OCEAN", "RIVER", "BEACH", "WET", "SWAMP"};
+        private String[] whitelistedBiomeTypes = whitelistBiomeTypesDefaults.clone();
 
         private FluidDef(Configuration config) {
             this.config = config;
@@ -75,35 +75,35 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
 
             blocks = config.getStringList("blocks", CAT_FLUID_DEF, new String[]{"minecraft:water", "minecraft:flowing_water"}, "The affected fluid blocks.");
 
-            minReplenishHeight = config.getInt("minReplenishHeight", CAT_FLUID_DEF, 40, 0, 255, "The min y-level at which the fluid will replenish.");
-            maxReplenishHeight = config.getInt("maxReplenishHeight", CAT_FLUID_DEF, 64, 0, 255, "The max y-level at which the fluid will replenish. Should be set no lower than sea level.");
+            heightMinReplenish = config.getInt("heightMinReplenish", CAT_FLUID_DEF, 40, 0, 255, "The min y-level at which the fluid will replenish.");
+            heightMaxReplenish = config.getInt("heightMaxReplenish", CAT_FLUID_DEF, 64, 0, 255, "The max y-level at which the fluid will replenish. Should be set no lower than sea level.");
 
-            normalBiomeSearchDistance = config.getInt("normalBiomeSearchDistance", CAT_FLUID_DEF, 4, 0, 16, "The max distance in chunks that the code should look for a valid biome for normal biomes. Zero disables.");
-            blacklistedBiomeSearchDistance = config.getInt("blacklistedBiomeSearchDistance", CAT_FLUID_DEF, 1, 0, 16, "The max distance in chunks that the code should look for a valid biome for blacklisted biomes. Zero disables.");
+            biomeSearchDistanceNormal = config.getInt("biomeSearchDistanceNormal", CAT_FLUID_DEF, 4, 0, 16, "The max distance in chunks that the code should look for a valid biome for normal biomes. Zero disables.");
+            biomeSearchDistanceBlacklisted = config.getInt("biomeSearchDistanceBlacklisted", CAT_FLUID_DEF, 1, 0, 16, "The max distance in chunks that the code should look for a valid biome for blacklisted biomes. Zero disables.");
 
             minPoolSize = config.getInt("minPoolSize", CAT_FLUID_DEF, 1000, 0, 4000, "The minimum required pool size to enable replenishment. Zero disables.");
 
-            dimensionWhitelist = config.getStringList("dimensionWhitelist", CAT_FLUID_DEF, new String[]{"0"}, "Dimensions that should allow the fluid to be infinite. An empty list causes the dimension to be ignored.");
+            whitelistedDimensions = config.getStringList("whitelistedDimensions", CAT_FLUID_DEF, new String[]{"0"}, "Dimensions that should allow the fluid to be infinite. An empty list causes the dimension to be ignored.");
 
-            biomeBlacklist = config.getStringList("biomeBlacklist", CAT_FLUID_DEF, biomeBlacklistDefaults, "Biomes that the fluid is not infinite in. Uses the fully qualified registry name. Takes priority over the whitelists and biome types.");
-            biomeWhitelist = config.getStringList("biomeWhitelist", CAT_FLUID_DEF, biomeWhitelistDefaults, "Biomes that the fluid is infinite in. Uses the fully qualified registry name. Takes priority over biome types.");
+            blacklistedBiomes = config.getStringList("blacklistedBiomes", CAT_FLUID_DEF, blacklistBiomesDefaults, "Biomes that the fluid is not infinite in. Uses the fully qualified registry name. Takes priority over the whitelists and biome types.");
+            whitelistedBiomes = config.getStringList("whitelistedBiomes", CAT_FLUID_DEF, whitelistBiomesDefaults, "Biomes that the fluid is infinite in. Uses the fully qualified registry name. Takes priority over biome types.");
 
-            biomeTypeBlacklist = config.getStringList("biomeTypeBlacklist", CAT_FLUID_DEF, biomeTypeBlacklistDefaults, "Biome Types that the fluid is not infinite in. Takes priority over the whitelists.");
-            biomeTypeWhitelist = config.getStringList("biomeTypeWhitelist", CAT_FLUID_DEF, biomeTypeWhitelistDefaults, "Biome Types that the fluid is infinite in.");
+            blacklistedBiomeTypes = config.getStringList("blacklistedBiomeTypes", CAT_FLUID_DEF, blacklistBiomeTypesDefaults, "Biome Types that the fluid is not infinite in. Takes priority over the whitelists.");
+            whitelistedBiomeTypes = config.getStringList("whitelistedBiomeTypes", CAT_FLUID_DEF, whitelistBiomeTypesDefaults, "Biome Types that the fluid is infinite in.");
         }
 
         private boolean isValidYLevel(BlockPos pos) {
-            return minReplenishHeight <= pos.getY() && pos.getY() <= maxReplenishHeight;
+            return heightMinReplenish <= pos.getY() && pos.getY() <= heightMaxReplenish;
         }
 
         private boolean isBlacklistedBiome(Biome biome) {
-            if (ArrayUtils.contains(biomeBlacklist, biome.getRegistryName().toString())) {
+            if (ArrayUtils.contains(blacklistedBiomes, biome.getRegistryName().toString())) {
                 return true;
             }
-            if (ArrayUtils.contains(biomeWhitelist, biome.getRegistryName().toString())) {
+            if (ArrayUtils.contains(whitelistedBiomes, biome.getRegistryName().toString())) {
                 return false;
             }
-            for (String biomeType : biomeTypeBlacklist) {
+            for (String biomeType : blacklistedBiomeTypes) {
                 if (BiomeDictionary.isBiomeOfType(biome, BiomeDictionary.Type.valueOf(biomeType))) {
                     return true;
                 }
@@ -112,18 +112,18 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
         }
 
         private boolean isValidBiome(Biome biome) {
-            if (ArrayUtils.contains(biomeBlacklist, biome.getRegistryName().toString())) {
+            if (ArrayUtils.contains(blacklistedBiomes, biome.getRegistryName().toString())) {
                 return false;
             }
-            if (ArrayUtils.contains(biomeWhitelist, biome.getRegistryName().toString())) {
+            if (ArrayUtils.contains(whitelistedBiomes, biome.getRegistryName().toString())) {
                 return true;
             }
-            for (String biomeType : biomeTypeBlacklist) {
+            for (String biomeType : blacklistedBiomeTypes) {
                 if (BiomeDictionary.isBiomeOfType(biome, BiomeDictionary.Type.valueOf(biomeType))) {
                     return false;
                 }
             }
-            for (String biomeType : biomeTypeWhitelist) {
+            for (String biomeType : whitelistedBiomeTypes) {
                 if (BiomeDictionary.isBiomeOfType(biome, BiomeDictionary.Type.valueOf(biomeType))) {
                     return true;
                 }
@@ -240,7 +240,7 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
         for (FluidDef def : fluidDefs) {
             if (def.isFluidBlock(state)) {
                 event.setResult(Event.Result.DENY);
-                if (!ArrayUtils.isEmpty(def.dimensionWhitelist) && !ArrayUtils.contains(def.dimensionWhitelist, Integer.toString(world.provider.getDimension())))
+                if (!ArrayUtils.isEmpty(def.whitelistedDimensions) && !ArrayUtils.contains(def.whitelistedDimensions, Integer.toString(world.provider.getDimension())))
                     return;
                 if (!def.isValidYLevel(event.getPos()))
                     return;
@@ -248,11 +248,11 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
                     return;
                 Biome biome = world.getBiome(event.getPos());
                 if (def.isBlacklistedBiome(biome)) {
-                    if (def.isNearbyBiomeValid(world, event.getPos(), def.blacklistedBiomeSearchDistance))
+                    if (def.isNearbyBiomeValid(world, event.getPos(), def.biomeSearchDistanceBlacklisted))
                         event.setResult(Event.Result.ALLOW);
                     return;
                 }
-                if (def.isValidBiome(biome) || def.isNearbyBiomeValid(world, event.getPos(), def.normalBiomeSearchDistance))
+                if (def.isValidBiome(biome) || def.isNearbyBiomeValid(world, event.getPos(), def.biomeSearchDistanceNormal))
                     event.setResult(Event.Result.ALLOW);
                 return;
             }
