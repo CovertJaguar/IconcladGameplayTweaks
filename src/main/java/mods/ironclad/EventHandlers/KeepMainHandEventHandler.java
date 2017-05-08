@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -30,13 +31,19 @@ import java.util.Map;
 public class KeepMainHandEventHandler implements IIroncladEventHandler{
     public static KeepMainHandEventHandler INSTANCE = new KeepMainHandEventHandler();
     private Map<EntityPlayer, ItemStack> deadPlayers = new MapMaker().weakKeys().makeMap();
+    private boolean keepMainHandOnDeath;
 
     private KeepMainHandEventHandler() {
     }
 
     @Override
     public boolean isEnabled() {
-        return IroncladConfig.keepMainHandOnDeath;
+        return keepMainHandOnDeath;
+    }
+
+    @Override
+    public void readConfig(Configuration config) {
+        keepMainHandOnDeath = config.getBoolean("keepMainHandOnDeath", IroncladConfig.CAT_PLAYER, false, "If true, the player will keep the item in his main hand through death. It is not recommended to turn on the keepInventory gamerule while this is active.");
     }
 
     @SubscribeEvent

@@ -30,12 +30,13 @@ public class Ironclad {
             BonemealEventHandler.INSTANCE,
             HorseSpeedEventHandler.HORSE,
             HorseSpeedEventHandler.UNDEAD,
-            HorseSpeedEventHandler.MULE
+            HorseSpeedEventHandler.MULE,
+            FiniteFluidEventHandler.INSTANCE
     };
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        IroncladConfig.load(event.getSuggestedConfigurationFile());
+        IroncladConfig.load(event.getModConfigurationDirectory());
     }
 
     @EventHandler

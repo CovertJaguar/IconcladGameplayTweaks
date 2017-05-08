@@ -7,6 +7,12 @@
 
 package mods.ironclad.EventHandlers;
 
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.client.config.IConfigElement;
+
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Created by CovertJaguar on 5/4/2017 for Railcraft.
  *
@@ -18,4 +24,10 @@ public interface IIroncladEventHandler {
 
     boolean isEnabled();
 
+    default void readConfig(Configuration config) {
+    }
+
+    default List<IConfigElement> getConfigs() {
+        return Collections.emptyList();
+    }
 }
