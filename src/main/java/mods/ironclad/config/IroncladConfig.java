@@ -13,7 +13,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.io.File;
 
@@ -44,8 +43,8 @@ public class IroncladConfig {
     }
 
     public static void readConfig() {
-        config.setCategoryComment(MOB_INV_ARMOR_DROP, "The chance that a entity will drop the armor its wearing. -1 to disable drops entirely.");
-        config.setCategoryComment(MOB_INV_HAND_DROP, "The chance that a entity will drop what is in its hands. -1 to disable drops entirely.");
+        config.setCategoryComment(MOB_INV_ARMOR_DROP, "The chance that a entity will drop the armor its wearing. -1 to disable drops entirely. -2 to ignore entity. 2 to force a drop. Vanilla uses 0.085.");
+        config.setCategoryComment(MOB_INV_HAND_DROP, "The chance that a entity will drop what is in its hands. -1 to disable drops entirely. -2 to ignore entity. 2 to force a drop. Vanilla uses 0.085.");
         config.setCategoryComment(CAT_PLAYER, "Tweaks pertaining to the player.");
         config.setCategoryComment(CAT_BONEMEAL, "Tweaks pertaining to bonemeal.");
         config.setCategoryComment(CAT_HORSE, "Tweaks pertaining to horses.");
@@ -65,14 +64,13 @@ public class IroncladConfig {
 
     public static void setArmorDropChance(Entity entity) {
         if (entity instanceof EntityLiving) {
-            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_ARMOR_DROP, 0.085F, -1F, 1F, "");
-            if (dropChance >= 0F) {
+            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_ARMOR_DROP, -2F, -2F, 2F, "");
+            if (dropChance >= -1F) {
                 EntityLiving el = (EntityLiving) entity;
-                float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryArmorDropChances", "field_184655_bs");
-                el.setDropChance(EntityEquipmentSlot.HEAD, currentValues[0] <= 0F ? -1F : dropChance);
-                el.setDropChance(EntityEquipmentSlot.CHEST, currentValues[1] <= 0F ? -1F : dropChance);
-                el.setDropChance(EntityEquipmentSlot.LEGS, currentValues[2] <= 0F ? -1F : dropChance);
-                el.setDropChance(EntityEquipmentSlot.FEET, currentValues[3] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.HEAD, dropChance);
+                el.setDropChance(EntityEquipmentSlot.CHEST, dropChance);
+                el.setDropChance(EntityEquipmentSlot.LEGS, dropChance);
+                el.setDropChance(EntityEquipmentSlot.FEET, dropChance);
             }
 
             if (config.hasChanged())
@@ -82,12 +80,11 @@ public class IroncladConfig {
 
     public static void setHandDropChance(Entity entity) {
         if (entity instanceof EntityLiving) {
-            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_HAND_DROP, 0.085F, -1F, 1F, "");
-            if (dropChance >= 0F) {
+            float dropChance = config.getFloat(entity.getClass().getName(), MOB_INV_HAND_DROP, -2F, -2F, 2F, "");
+            if (dropChance >= -1F) {
                 EntityLiving el = (EntityLiving) entity;
-                float[] currentValues = ObfuscationReflectionHelper.getPrivateValue(EntityLiving.class, el, "inventoryHandsDropChances", "field_82174_bp");
-                el.setDropChance(EntityEquipmentSlot.MAINHAND, currentValues[0] <= 0F ? -1F : dropChance);
-                el.setDropChance(EntityEquipmentSlot.OFFHAND, currentValues[1] <= 0F ? -1F : dropChance);
+                el.setDropChance(EntityEquipmentSlot.MAINHAND, dropChance);
+                el.setDropChance(EntityEquipmentSlot.OFFHAND, dropChance);
             }
 
             if (config.hasChanged())
