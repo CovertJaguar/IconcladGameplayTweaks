@@ -11,9 +11,10 @@ import mods.ironclad.config.IroncladConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeProvider;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
@@ -26,7 +27,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Created by CovertJaguar on 5/7/2017 for Railcraft.
@@ -36,11 +36,10 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class FiniteFluidEventHandler implements IIroncladEventHandler {
 
     public static FiniteFluidEventHandler INSTANCE = new FiniteFluidEventHandler();
+    private static final int BIOME_SCAN_SKIP_LENGTH = 4;
     public static String CAT_FLUID_DEF = "fluid_def";
     private boolean enableFluidReplenishmentOverride;
     private List<FluidDef> fluidDefs = new ArrayList<>();
-
-    private Biome[] tempBiomeArray;
 
     private class FluidDef {
 
@@ -134,24 +133,49 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
         private boolean isNearbyBiomeValid(World world, BlockPos pos, int searchDistance) {
             if (searchDistance <= 0)
                 return false;
-            BiomeProvider biomeProvider = world.getBiomeProvider();
-            int chunkX = pos.getX() >> 4;
-            int chunkZ = pos.getZ() >> 4;
+            int originX = pos.getX() >> 4;
+            int originZ = pos.getZ() >> 4;
 
-            int minX = chunkX - searchDistance;
-            int maxX = chunkX + searchDistance;
-            int minZ = chunkZ - searchDistance;
-            int maxZ = chunkZ + searchDistance;
+            int minX = originX - searchDistance;
+            int maxX = originX + searchDistance;
+            int minZ = originZ - searchDistance;
+            int maxZ = originZ + searchDistance;
 
-            for (int xx = minX; xx <= maxX; xx++) {
-                for (int zz = minZ; zz <= maxZ; zz++) {
-                    tempBiomeArray = biomeProvider.getBiomes(tempBiomeArray, xx * 16, zz * 16, 16, 16);
-                    for (Biome biome : tempBiomeArray) {
-                        if (isValidBiome(biome))
-                            return true;
-                    }
+            List<ChunkPos> chunks = new ArrayList<>(81);
+
+            BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
+            for (int chunkX = minX; chunkX <= maxX; chunkX++) {
+                for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
+                    chunks.add(new ChunkPos(chunkX, chunkZ));
                 }
             }
+
+            chunks.sort(Comparator.comparingDouble(value -> {
+                double diffX = value.chunkXPos - originX;
+                double diffZ = value.chunkZPos - originZ;
+                return diffX * diffX + diffZ * diffZ;
+            }));
+
+//            int checks = 0;
+            for (ChunkPos chunkPos : chunks) {
+                targetPos.setPos(chunkPos.chunkXPos * 16, 64, chunkPos.chunkZPos * 16);
+                if (world.isBlockLoaded(targetPos)) {
+                    Chunk chunk = world.getChunkFromChunkCoords(chunkPos.chunkXPos, chunkPos.chunkZPos);
+                    for (int x = 0; x < 16; x += BIOME_SCAN_SKIP_LENGTH) {
+                        for (int z = 0; z < 16; z += BIOME_SCAN_SKIP_LENGTH) {
+                            targetPos.setPos(chunk.xPosition * 16 + x, 64, chunk.zPosition * 16 + z);
+                            Biome biome = chunk.getBiome(targetPos, world.getBiomeProvider());
+//                            checks++;
+                            if (isValidBiome(biome)) {
+//                                System.out.println("r: success c:" + checks);
+                                return true;
+                            }
+                        }
+                    }
+                } else return true;
+            }
+
+//            System.out.println("r: failed c:" + chunks.size() + " b:" + checks);
             return false;
         }
 
@@ -162,28 +186,24 @@ public class FiniteFluidEventHandler implements IIroncladEventHandler {
         private boolean isValidPool(World world, BlockPos pos) {
             if (minPoolSize <= 0)
                 return true;
-            Collection<BlockPos> blocksToExpand = new ConcurrentSkipListSet<>();
+            Deque<BlockPos> fluidToExpand = new ArrayDeque<>();
             Collection<BlockPos> visitedBlocks = new HashSet<>();
-            blocksToExpand.add(pos);
+            fluidToExpand.add(pos);
             visitedBlocks.add(pos);
             BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
-            while (!blocksToExpand.isEmpty() && visitedBlocks.size() < minPoolSize) {
-                Iterator<BlockPos> it = blocksToExpand.iterator();
-                while (it.hasNext() && visitedBlocks.size() < minPoolSize) {
-                    BlockPos fluidBlock = it.next();
-                    for (EnumFacing facing : EnumFacing.VALUES) {
-                        targetPos.setPos(fluidBlock);
-                        targetPos.move(facing);
-                        if (isValidYLevel(targetPos) && !visitedBlocks.contains(targetPos)) {
-                            IBlockState targetState = world.getBlockState(targetPos);
-                            if (isFluidBlock(targetState)) {
-                                BlockPos immutable = targetPos.toImmutable();
-                                blocksToExpand.add(immutable);
-                                visitedBlocks.add(immutable);
-                            }
+            BlockPos nextBlock;
+            while ((nextBlock = fluidToExpand.poll()) != null && visitedBlocks.size() < minPoolSize) {
+                for (EnumFacing facing : EnumFacing.VALUES) {
+                    targetPos.setPos(nextBlock);
+                    targetPos.move(facing);
+                    if (isValidYLevel(targetPos) && !visitedBlocks.contains(targetPos)) {
+                        IBlockState targetState = world.getBlockState(targetPos);
+                        if (isFluidBlock(targetState)) {
+                            BlockPos immutable = targetPos.toImmutable();
+                            fluidToExpand.addLast(immutable);
+                            visitedBlocks.add(immutable);
                         }
                     }
-                    it.remove();
                 }
             }
             return visitedBlocks.size() >= minPoolSize;
