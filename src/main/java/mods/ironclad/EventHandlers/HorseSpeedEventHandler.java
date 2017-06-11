@@ -48,6 +48,7 @@ public class HorseSpeedEventHandler implements IIroncladEventHandler {
         return settingSupplier.get() != 0F;
     }
 
+    @Override
     public void reset() {
         speedModifier = getNewModifier();
     }

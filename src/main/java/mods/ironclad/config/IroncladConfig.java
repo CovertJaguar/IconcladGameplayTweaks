@@ -33,6 +33,7 @@ public class IroncladConfig {
     public static String CAT_BONEMEAL = "bonemeal";
     public static String CAT_HORSE = "horse";
     public static String CAT_FLUIDS = "fluids";
+    public static String CAT_ITEMS = "items";
 
     public static void load(File modConfigFolder) {
         configFolder = new File(modConfigFolder, Ironclad.MOD_ID);
@@ -49,6 +50,7 @@ public class IroncladConfig {
         config.setCategoryComment(CAT_BONEMEAL, "Tweaks pertaining to bonemeal.");
         config.setCategoryComment(CAT_HORSE, "Tweaks pertaining to horses.");
         config.setCategoryComment(CAT_FLUIDS, "Tweaks pertaining to fluids.");
+        config.setCategoryComment(CAT_ITEMS, "Tweaks pertaining to items.");
 
         for (IIroncladEventHandler eventHandler : Ironclad.eventHandlers) {
             eventHandler.readConfig(config);

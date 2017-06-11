@@ -7,8 +7,8 @@
 
 package mods.ironclad.EventHandlers;
 
+import mods.ironclad.Utils;
 import mods.ironclad.config.IroncladConfig;
-import net.minecraft.block.state.IBlockState;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.player.BonemealEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -50,17 +50,9 @@ public class BonemealEventHandler implements IIroncladEventHandler {
         bonemealWhitelist = Arrays.stream(bonemealWhitelistArray).collect(Collectors.toSet());
     }
 
-    private boolean isBonemealWhitelisted(IBlockState state) {
-        String name = state.getBlock().getRegistryName().toString();
-        if (bonemealWhitelist.contains(name))
-            return true;
-        name += "#" + state.getBlock().getMetaFromState(state);
-        return bonemealWhitelist.contains(name);
-    }
-
     @SubscribeEvent
     public void bonemeal(BonemealEvent event) {
-        if (!isBonemealWhitelisted(event.getBlock()))
+        if (!Utils.containsBlock(bonemealWhitelist, event.getBlock()))
             event.setCanceled(true);
     }
 

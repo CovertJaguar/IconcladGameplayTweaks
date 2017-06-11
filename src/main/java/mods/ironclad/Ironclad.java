@@ -31,7 +31,8 @@ public class Ironclad {
             HorseSpeedEventHandler.HORSE,
             HorseSpeedEventHandler.UNDEAD,
             HorseSpeedEventHandler.MULE,
-            FiniteFluidEventHandler.INSTANCE
+            FiniteFluidEventHandler.INSTANCE,
+            ItemEnforcerEventHandler.INSTANCE
     };
 
     @EventHandler
