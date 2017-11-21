@@ -28,29 +28,34 @@ import java.util.Map;
  *
  * @author CovertJaguar <http://www.railcraft.info>
  */
-public class KeepMainHandEventHandler implements IIroncladEventHandler{
-    public static KeepMainHandEventHandler INSTANCE = new KeepMainHandEventHandler();
+public class KeepHandEventHandler implements IIroncladEventHandler{
+    public static KeepHandEventHandler MAIN_HAND = new KeepHandEventHandler(EnumHand.MAIN_HAND, "keepMainHandOnDeath");
+    public static KeepHandEventHandler OFF_HAND = new KeepHandEventHandler(EnumHand.OFF_HAND, "keepOffHandOnDeath");
     private Map<EntityPlayer, ItemStack> deadPlayers = new MapMaker().weakKeys().makeMap();
-    private boolean keepMainHandOnDeath;
+    private boolean keep;
+    private final EnumHand hand;
+    private final String configTag;
 
-    private KeepMainHandEventHandler() {
+    private KeepHandEventHandler(EnumHand hand, String configTag) {
+        this.hand = hand;
+        this.configTag = configTag;
     }
 
     @Override
     public boolean isEnabled() {
-        return keepMainHandOnDeath;
+        return keep;
     }
 
     @Override
     public void readConfig(Configuration config) {
-        keepMainHandOnDeath = config.getBoolean("keepMainHandOnDeath", IroncladConfig.CAT_PLAYER, false, "If true, the player will keep the item in his main hand through death. It is not recommended to turn on the keepInventory gamerule while this is active.");
+        keep = config.getBoolean(configTag, IroncladConfig.CAT_PLAYER, false, "If true, the player will keep the item in his hand through death. It is not recommended to turn on the keepInventory gamerule while this is active.");
     }
 
     @SubscribeEvent
     public void onLivingDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof EntityPlayerMP) {
             EntityPlayerMP player = (EntityPlayerMP) event.getEntity();
-            ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
+            ItemStack stack = player.getHeldItem(hand);
             if (stack != null)
                 deadPlayers.put(player, stack);
         }
@@ -59,21 +64,21 @@ public class KeepMainHandEventHandler implements IIroncladEventHandler{
     @SubscribeEvent
     public void onPlayerDrops(PlayerDropsEvent event) {
         EntityPlayer player = event.getEntityPlayer();
-        ItemStack mainHandItemStack = deadPlayers.get(player);
-        if (mainHandItemStack == null)
+        ItemStack heldStack = deadPlayers.get(player);
+        if (heldStack == null)
             return;
         Iterator<EntityItem> it = event.getDrops().iterator();
         boolean foundItem = false;
         while (it.hasNext()) {
             EntityItem ei = it.next();
-            if (ei.getEntityItem() == mainHandItemStack) {
+            if (ei.getEntityItem() == heldStack) {
                 foundItem = true;
                 it.remove();
                 break;
             }
         }
         if (foundItem)
-            player.setHeldItem(EnumHand.MAIN_HAND, mainHandItemStack);
+            player.setHeldItem(hand, heldStack);
         deadPlayers.remove(player);
     }
 
@@ -84,9 +89,9 @@ public class KeepMainHandEventHandler implements IIroncladEventHandler{
             return;
         }
         EntityPlayer newPlayer = event.getEntityPlayer();
-        ItemStack mainHandItemStack = oldPlayer.getHeldItem(EnumHand.MAIN_HAND);
-        if (mainHandItemStack == null)
+        ItemStack heldStack = oldPlayer.getHeldItem(hand);
+        if (heldStack == null)
             return;
-        newPlayer.setHeldItem(EnumHand.MAIN_HAND, mainHandItemStack);
+        newPlayer.setHeldItem(hand, heldStack);
     }
 }

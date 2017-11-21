@@ -26,7 +26,8 @@ public class Ironclad {
     public static final String VERSION = "@VERSION@";
     public static final IIroncladEventHandler[] eventHandlers = {
             DropChanceEventHandler.INSTANCE,
-            KeepMainHandEventHandler.INSTANCE,
+            KeepHandEventHandler.MAIN_HAND,
+            KeepHandEventHandler.OFF_HAND,
             BonemealEventHandler.INSTANCE,
             HorseSpeedEventHandler.HORSE,
             HorseSpeedEventHandler.UNDEAD,
